@@ -49,6 +49,7 @@ var (
 
 var (
 	esURL       = flag.String("es", getenvDefault("ELASTICSEARCH_URL", "http://localhost:9200"), "Elasticsearch URL")
+	index       = flag.String("index", "apm-*", "Elasticsearch index pattern in which to search for events")
 	since       = flag.String("since", "now-1h", "return data from this date/time")
 	searchSize  = flag.Int("search_size", 1000, "search size")
 	execCommand = flag.String("exec", curlCommand, "command to execute for each stream")
@@ -60,7 +61,7 @@ func Main(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	pit, err := openPIT(ctx, es, "apm-*")
+	pit, err := openPIT(ctx, es, *index)
 	if err != nil {
 		return err
 	}
@@ -421,7 +422,7 @@ func searchEvents(ctx context.Context, es *elasticsearch.Client, pit string, out
 func openPIT(ctx context.Context, es *elasticsearch.Client, index string) (string, error) {
 	resp, err := es.OpenPointInTime(
 		es.OpenPointInTime.WithContext(ctx),
-		es.OpenPointInTime.WithIndex("apm-*"),
+		es.OpenPointInTime.WithIndex(index),
 		es.OpenPointInTime.WithKeepAlive("1m"),
 	)
 	if err != nil {
